@@ -22,6 +22,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         
         // Вызываем метод для запроса уведомлений
         requestAutorization()
+        // Назначаем делегата, чтобы уведомление отображалось при активном приложении
+        notificationCenter.delegate = self
         
         return true
     }
@@ -84,3 +86,23 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
 }
 
+// Расширяем класс, для того, чтобы получить возможность получать уведомления, даже в том случае если приложение активно
+extension AppDelegate: UNUserNotificationCenterDelegate {
+    // Метод для показа уведомлений во время активного приложения
+    func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
+        
+        // Отображаем уведомление со звуком
+        completionHandler([.alert, .sound])
+    }
+    
+    // Метод для того, чтобы по нажатию на уведомление, что то происходило
+    func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
+        
+        // Создаём действие которое происходит по нажатию на уведомление
+        if response.notification.request.identifier == "Local Notification" {
+            print("На уведомление нажали")
+        }
+        // Зачем то что то вызываем, он не объяснил зачем. Надо разобраться
+        completionHandler()
+    }
+}
