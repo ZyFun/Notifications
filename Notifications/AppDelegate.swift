@@ -21,18 +21,20 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         
         // Вызываем метод для запроса уведомлений
-        requestAutorisation()
+        requestAutorization()
         
         return true
     }
 
+    // Метод отслеживающий возвращение в приложение (сообщает делегату, что приложение вновь активно)
     func applicationDidBecomeActive(_ application: UIApplication) {
-        // Restart any tasks that were paused (or not yet started) while the application was inactive. If the application was previously in the background, optionally refresh the user interface.
+        // Вызываем метод, который обнудяет счетчик уведомлений на юейдже
+        UIApplication.shared.applicationIconBadgeNumber = 0
     }
     
 
     // Метод для запроса у пользователя разрешения на отправку уведомлений
-    func requestAutorisation() {
+    func requestAutorization() {
         // Метод запроса авторизации. options это те уведомления которые мы хотим отправлять. Булево значение обозночает, прошла авторизация или нет
         notificationCenter.requestAuthorization(options: [.alert, .sound, .badge]) { (granted, error) in
             print("Разрешение получено: \(granted)")
@@ -48,6 +50,35 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // Проверяем состояние авторизаций или параметров уведомлений
         notificationCenter.getNotificationSettings { (settings) in
             print("Настройки уведомлений: \(settings)")
+        }
+    }
+    
+    // Метод отвечает за расписание уведоплений
+    func scheduleNotification(notificationType: String) {
+        // Создаём экземпляр класса. Для настройки контента уведомлений
+        let content = UNMutableNotificationContent()
+        
+        // Задаём параметры контента в уведомлении
+        content.title = notificationType
+        content.body = "Экземпляр создан " + notificationType
+        content.sound = UNNotificationSound.default
+        // Цифра, которая отображается на иконке приложения
+        content.badge = 1
+        
+        // Создаём триггер вызывающий уведопление. Интервал указывается в секундах
+        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 5, repeats: false)
+        
+        // Создаём идентификатор для запроса уведомления
+        let identifire = "Local Notification"
+    
+        // Создаём запрос уведомления
+        let request = UNNotificationRequest(identifier: identifire, content: content, trigger: trigger)
+        
+        // Вызываем запрос уведомления через центр уведомлений и обрабатываем ошибку, если что то пойдет не так
+        notificationCenter.add(request) { (error) in
+            if let error = error {
+                print("Error: \(error.localizedDescription)")
+            }
         }
     }
 
