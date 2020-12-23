@@ -50,6 +50,20 @@ class Notifications: NSObject, UNUserNotificationCenterDelegate {
         // Включаем категорию в контент уведомления, для того чтобы пользовательские действия стали доступны
         content.categoryIdentifier = userAction
         
+        // Проверяем, есть ли изображение в проекте
+        guard let path = Bundle.main.path(forResource: "favicon", ofType: "png") else { return }
+        // Создаём экземпляр класса с картинкой
+        let url = URL(fileURLWithPath: path)
+        
+        // Проверяем на возможность создать связь
+        do {
+            let attachment =  try UNNotificationAttachment(identifier: "favicon", url: url, options: nil)
+            // Добавляем привязку к контенту
+            content.attachments = [attachment]
+        } catch {
+            print("Привязка не удалась")
+        }
+        
         // Создаём триггер вызывающий уведопление. Интервал указывается в секундах
         let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 5, repeats: false)
         
