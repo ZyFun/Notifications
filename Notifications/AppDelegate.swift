@@ -59,6 +59,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     func scheduleNotification(notificationType: String) {
         // Создаём экземпляр класса. Для настройки контента уведомлений
         let content = UNMutableNotificationContent()
+        // Идентификатор дял создания категории действия
+        let userAction = "User Action"
         
         // Задаём параметры контента в уведомлении
         content.title = notificationType
@@ -66,6 +68,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         content.sound = UNNotificationSound.default
         // Цифра, которая отображается на иконке приложения
         content.badge = 1
+        // Включаем категорию в контент уведомления, для того чтобы пользовательские действия стали доступны
+        content.categoryIdentifier = userAction
         
         // Создаём триггер вызывающий уведопление. Интервал указывается в секундах
         let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 5, repeats: false)
@@ -82,6 +86,16 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
                 print("Error: \(error.localizedDescription)")
             }
         }
+        
+        // Идентификатор действия, позволяет пользователю отложить уведомление на некоторое время
+        let snozeAction = UNNotificationAction(identifier: "Snooze", title: "Snooze", options: [])
+        // Идентификатор действия, позволяет пользователю удалить уведомление
+        let deleteAction = UNNotificationAction(identifier: "Delete", title: "Delete", options: [.destructive])
+        // Создаём категорию для действий
+        let category = UNNotificationCategory(identifier: userAction, actions: [snozeAction, deleteAction], intentIdentifiers: [], options: [])
+        
+        // Регестрируем категорию в цетре уведомлений
+        notificationCenter.setNotificationCategories([category])
     }
 
 }
@@ -101,6 +115,22 @@ extension AppDelegate: UNUserNotificationCenterDelegate {
         // Создаём действие которое происходит по нажатию на уведомление
         if response.notification.request.identifier == "Local Notification" {
             print("На уведомление нажали")
+        }
+        
+        // Выбираем действия выполняемые приложением, в зависимости от того, что выбрал пользователь
+        // Таких действий можно добавлять до 4, не считая действий по умолчанию
+        switch response.actionIdentifier {
+        case UNNotificationDismissActionIdentifier: // Свойство, которое явно отклоняет уведомление, например из центра уведомлений.
+            print("Действие отклонено")
+        case UNNotificationDefaultActionIdentifier: // Свойство, которое выполняет действие при тапе прямо на уведомление, открыв тем самым приложение
+            print("По умолчанию")
+        case "Snooze":
+            print("Snooze")
+            scheduleNotification(notificationType: "Reminder") // Вызываем повторное появление уведомления
+        case "Delete":
+            print("Удалено")
+        default:
+            print("Что то пошло не так")
         }
         // Зачем то что то вызываем, он не объяснил зачем. Надо разобраться
         completionHandler()
